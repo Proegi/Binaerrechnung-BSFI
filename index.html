@@ -204,6 +204,23 @@
   .lock-note{font-size:.88rem;color:var(--ink-2);margin-bottom:10px;}
 
   .qbox{margin-top:18px;}
+
+  table.range{border-collapse:collapse;}
+  table.range td{padding:4px 6px 4px 0;vertical-align:middle;}
+  table.range td.lab{
+    font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--ink-3);padding-right:14px;white-space:nowrap;
+  }
+  table.range td.bis{
+    font-family:var(--mono);font-size:.8rem;color:var(--ink-2);text-align:center;padding:0 8px;
+  }
+  table.range td.mark{
+    font-family:var(--mono);font-size:1rem;font-weight:700;padding-left:10px;width:1.6rem;
+  }
+  table.range td.mark.ok{color:var(--ok);}
+  table.range td.mark.bad{color:var(--bad);}
+  input.bad{border-color:var(--bad);background:#FAEFEE;}
+  .step a,.info a{color:var(--pink);font-weight:600;}
   .choices{display:flex;flex-direction:column;gap:6px;margin:8px 0 4px;}
   .choices label{font-size:.94rem;display:flex;gap:9px;align-items:flex-start;cursor:pointer;}
   input[type=checkbox],input[type=radio]{width:17px;height:17px;accent-color:var(--pink);flex:0 0 auto;margin-top:3px;}
@@ -233,7 +250,7 @@
 <header class="top">
   <div class="kicker">Netzwerktechnik / IT-Systemhaus</div>
   <h1>Von der Binärzahl zum Subnetz</h1>
-  <p>Du bist im Ausbildungsbetrieb für die Netzdokumentation und die Adressplanung mit zuständig. Die vier Aufträge auf diesem Blatt sind in einer Woche angefallen.</p>
+  <p>Du bist im Ausbildungsbetrieb für die Netzdokumentation und die Adressplanung mit zuständig. Die fünf Aufträge auf diesem Blatt sind in einer Woche angefallen.</p>
 </header>
 
 <!-- ============ AUFGABE 1 ============ -->
@@ -535,6 +552,51 @@
         <div class="msg" id="msg-a4e"></div>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- ============ AUFGABE 5 ============ -->
+<section class="task" id="a5">
+  <div class="task-head">
+    <span class="num">Aufgabe 5</span>
+    <h2>Der Weg nach draußen</h2>
+  </div>
+
+  <div class="brief">
+    <span class="who">Kollegin aus der Netzdokumentation</span>
+    <p>In einem alten Adressplan sind private und öffentliche Adressen bunt gemischt eingetragen. Bevor der Plan überarbeitet wird, sollst du die Bereiche sauber belegen können.</p>
+  </div>
+
+  <div class="info">
+    <p>Bisher ging es immer um zwei Geräte im selben Netz. Was passiert, wenn das Ziel gar nicht im eigenen Netz liegt?</p>
+    <p>Jedes Gerät prüft vor dem Senden mit seiner Subnetzmaske, ob die Zieladresse im eigenen Netz liegt. Liegt sie darin, geht das Paket direkt hin. Liegt sie außerhalb, gibt das Gerät das Paket an das <strong>Standardgateway</strong>, was in den meisten Fällen ein Router ist. Das Standardgateway kennt weitere Netze und reicht das Paket an den nächsten Hop weiter. So wandert es von Station zu Station, bis es sein Ziel erreicht. Dieses Weiterreichen heißt <strong>Routing</strong>.</p>
+    <p>Damit das weltweit funktioniert, muss jede Adresse im Internet eindeutig sein. Es gibt aber viel zu wenige IPv4-Adressen für jedes Gerät auf der Welt. Eine IPv4-Adresse besteht aus vier Oktetts zu je 8 Bit, zusammen also 32 Bit. Jedes Bit kennt zwei Zustände, damit ergeben sich 2<sup>32</sup> Möglichkeiten, das sind 4.294.967.296 Adressen. Anders gerechnet: 256 Werte je Oktett, also <code>256 · 256 · 256 · 256</code> und damit dasselbe Ergebnis. Rund 4,3 Milliarden klingt nach viel, reicht bei über 8 Milliarden Menschen und mehreren Geräten pro Person aber bei Weitem nicht. Deshalb wurden drei Bereiche reserviert, die ausschließlich innerhalb von lokalen Netzen verwendet werden und nicht aus dem Internet erreichbar sind.</p>
+    <p>Diese <strong>privaten</strong> Adressen gibt es weltweit millionenfach, in fast jedem Haushalt und in jeder Firma. Router im Internet leiten sie grundsätzlich nicht weiter. Alles außerhalb dieser drei Bereiche ist <strong>öffentlich</strong> und weltweit nur einmal vergeben.</p>
+    <p>Festgehalten sind solche Regeln in sogenannten <strong>RFCs</strong>, ausgeschrieben <em>Request for Comments</em>. Das sind öffentlich zugängliche Dokumente, in denen die technischen Festlegungen des Internets beschrieben werden. Jedes RFC trägt eine feste Nummer und bleibt gültig, bis ein neueres es ersetzt.</p>
+  </div>
+
+  <div class="step">
+    <h3>5a Die privaten Bereiche</h3>
+    <p class="case">Der Adressplan soll künftig nur noch private Adressen enthalten. Dafür brauchst du die Grenzen der drei Bereiche.</p>
+    <p>Die drei privaten Bereiche stehen in <a href="https://www.rfc-editor.org/rfc/rfc1918.html" target="_blank" rel="noopener">RFC 1918</a>. Schau dort die privaten Adressen nach und trage sie unten ein. In welcher Reihenfolge du die drei Bereiche einträgst, ist egal.</p>
+    <div class="block">
+      <table class="range" id="rfcTable"></table>
+    </div>
+    <div class="answer">
+      <button class="check" data-check="a5a">Prüfen</button>
+    </div>
+    <div class="msg" id="msg-a5a"></div>
+  </div>
+
+  <div class="step">
+    <h3>5b Privat oder öffentlich</h3>
+    <p class="case">Aus dem alten Adressplan stammen diese fünf Einträge.</p>
+    <p>Kreuze alle Adressen an, die aus einem privaten Bereich stammen.</p>
+    <div class="choices" id="privChoices"></div>
+    <div class="answer">
+      <button class="check" data-check="a5b">Prüfen</button>
+    </div>
+    <div class="msg" id="msg-a5b"></div>
   </div>
 </section>
 
@@ -1458,6 +1520,155 @@
     if (sel === null){ say("msg-a4e", "Wähle eine Antwort aus.", "hint"); return; }
     if (sel === "b2"){ say("msg-a4e", "Richtig. Die beiden Geräte beurteilen dieselbe Verbindung unterschiedlich.", "ok"); }
     else { say("msg-a4e", "Noch nicht. Rechne beide Richtungen getrennt und achte darauf, mit welcher Subnetzmaske jedes Gerät rechnet.", "hint"); }
+  };
+
+  /* ================= 5a ================= */
+  var RFC1918 = [
+    { von: "10.0.0.0",    bis: "10.255.255.255"  },
+    { von: "172.16.0.0",  bis: "172.31.255.255"  },
+    { von: "192.168.0.0", bis: "192.168.255.255" }
+  ];
+  var rfcRows = [];
+
+  function canonIp(v){
+    var raw = clean(v);
+    if (!raw) return null;
+    var p = raw.split(".");
+    if (p.length !== 4) return null;
+    for (var i = 0; i < 4; i++){
+      if (!/^\d{1,3}$/.test(p[i]) || Number(p[i]) > 255) return null;
+    }
+    return [Number(p[0]), Number(p[1]), Number(p[2]), Number(p[3])].join(".");
+  }
+
+  (function(){
+    var t = $("rfcTable");
+    for (var i = 0; i < 3; i++){
+      var tr = document.createElement("tr");
+
+      var lab = document.createElement("td");
+      lab.className = "lab";
+      lab.textContent = "Bereich " + (i + 1);
+      tr.appendChild(lab);
+
+      var tdVon = document.createElement("td");
+      var von = document.createElement("input");
+      von.type = "text";
+      von.className = "w-ip";
+      von.placeholder = "x.x.x.x";
+      von.autocomplete = "off";
+      tdVon.appendChild(von);
+      tr.appendChild(tdVon);
+
+      var tdBis = document.createElement("td");
+      tdBis.className = "bis";
+      tdBis.textContent = "bis";
+      tr.appendChild(tdBis);
+
+      var tdEnd = document.createElement("td");
+      var bis = document.createElement("input");
+      bis.type = "text";
+      bis.className = "w-ip";
+      bis.placeholder = "y.y.y.y";
+      bis.autocomplete = "off";
+      tdEnd.appendChild(bis);
+      tr.appendChild(tdEnd);
+
+      var mark = document.createElement("td");
+      mark.className = "mark";
+      tr.appendChild(mark);
+
+      t.appendChild(tr);
+      rfcRows.push({ von: von, bis: bis, mark: mark });
+    }
+  })();
+
+  checks.a5a = function(){
+    var used = {}, good = 0, leer = 0;
+
+    rfcRows.forEach(function(row){
+      row.von.className = "w-ip";
+      row.bis.className = "w-ip";
+      row.mark.className = "mark";
+      row.mark.textContent = "";
+    });
+
+    for (var i = 0; i < rfcRows.length; i++){
+      var row = rfcRows[i];
+      var von = canonIp(row.von.value);
+      var bis = canonIp(row.bis.value);
+
+      if (von === null && bis === null){ leer++; continue; }
+
+      var treffer = null;
+      for (var k = 0; k < RFC1918.length; k++){
+        if (RFC1918[k].von === von) treffer = RFC1918[k];
+      }
+
+      if (treffer && !used[treffer.von]){
+        used[treffer.von] = true;
+        row.von.className = "w-ip ok";
+        if (bis === treffer.bis){
+          row.bis.className = "w-ip ok";
+          row.mark.className = "mark ok";
+          row.mark.textContent = "\u2713";
+          good++;
+        } else {
+          row.bis.className = "w-ip bad";
+          row.mark.className = "mark bad";
+          row.mark.textContent = "\u2717";
+        }
+      } else {
+        row.von.className = "w-ip bad";
+        if (bis !== null) row.bis.className = "w-ip bad";
+        row.mark.className = "mark bad";
+        row.mark.textContent = "\u2717";
+      }
+    }
+
+    if (leer === 3){ say("msg-a5a", "Trage die drei Bereiche ein.", "hint"); return; }
+    if (good === 3){ say("msg-a5a", "Alle drei Bereiche stimmen.", "ok"); return; }
+    if (good === 0){
+      say("msg-a5a", "Noch kein Bereich vollständig richtig. Grün markierte Felder passen bereits.", "hint");
+    } else {
+      say("msg-a5a", good + " von 3 Bereichen stimmen. Grün markierte Felder passen bereits.", "hint");
+    }
+  };
+
+  /* ================= 5b ================= */
+  var PRIV_OPTIONS = [
+    { text: "192.168.1.50",  priv: true  },
+    { text: "8.8.8.8",       priv: false },
+    { text: "172.16.9.1",    priv: true  },
+    { text: "172.32.5.1",    priv: false },
+    { text: "192.169.1.1",   priv: false }
+  ];
+  (function(){
+    var host = $("privChoices");
+    PRIV_OPTIONS.forEach(function(o){
+      var lab = document.createElement("label");
+      var cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.className = "pickpriv";
+      var sp = document.createElement("span");
+      sp.style.fontFamily = "var(--mono)";
+      sp.textContent = o.text;
+      lab.appendChild(cb);
+      lab.appendChild(sp);
+      host.appendChild(lab);
+    });
+  })();
+
+  checks.a5b = function(){
+    var boxes = document.querySelectorAll("input.pickpriv");
+    var any = false, allOk = true;
+    for (var i = 0; i < boxes.length; i++){
+      if (boxes[i].checked) any = true;
+      if (boxes[i].checked !== PRIV_OPTIONS[i].priv) allOk = false;
+    }
+    if (!any){ say("msg-a5b", "Kreuze die privaten Adressen an.", "hint"); return; }
+    if (allOk){ say("msg-a5b", "Richtig.", "ok"); }
+    else { say("msg-a5b", "Noch nicht. Prüfe jede Adresse gegen die Grenzen aus 5a, besonders das zweite Oktett.", "hint"); }
   };
 
   /* ================= Buttons ================= */
