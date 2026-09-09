@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Von der Binärzahl zum Subnetz</title>
+<style>
+  :root{
+    --paper:#E4E6E1;
+    --card:#FAFAF8;
+    --card-2:#F1F2EE;
+    --ink:#15181B;
+    --ink-2:#5C6169;
+    --ink-3:#8A8F95;
+    --line:#C7CAC3;
+    --line-2:#DEE0DA;
+    --pink:#D6437E;
+    --ok:#1E6B4F;
+    --warn:#9E6A12;
+    --bad:#B32C22;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:"Inter","Segoe UI",system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0;
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:16px;
+    line-height:1.55;
+    background:
+      repeating-linear-gradient(45deg,
+        rgba(21,24,27,.028) 0 7px,
+        rgba(21,24,27,0) 7px 15px),
+      var(--paper);
+  }
+  .sheet{max-width:940px;margin:0 auto;padding:34px 22px 80px;}
+
+  header.top{
+    background:var(--card);border:1px solid var(--ink);
+    box-shadow:5px 5px 0 rgba(21,24,27,.14);
+    padding:20px 22px;margin-bottom:34px;
+  }
+  header.top .kicker{
+    font-family:var(--mono);font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--ink-3);margin-bottom:8px;
+  }
+  header.top h1{font-size:1.6rem;font-weight:650;letter-spacing:-.015em;margin:0 0 6px;}
+  header.top p{margin:0;color:var(--ink-2);font-size:.95rem;}
+
+  section.task{
+    background:var(--card);border:1px solid var(--ink);
+    box-shadow:5px 5px 0 rgba(21,24,27,.14);
+    padding:22px 22px 26px;margin-bottom:34px;
+  }
+  .task-head{border-bottom:1px solid var(--ink);padding-bottom:10px;margin-bottom:18px;}
+  .task-head .num{
+    display:block;font-family:var(--mono);font-size:.68rem;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--pink);margin-bottom:4px;
+  }
+  .task-head h2{font-size:1.18rem;font-weight:650;margin:0;}
+
+  .brief{
+    border-left:3px solid var(--pink);background:var(--card-2);
+    padding:10px 14px;margin:0 0 18px;font-size:.93rem;
+  }
+  .brief .who{
+    display:block;font-family:var(--mono);font-size:.64rem;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--ink-3);margin-bottom:3px;
+  }
+  .brief p{margin:0;}
+
+  .info{background:var(--card-2);border:1px solid var(--line);padding:14px 16px;margin-bottom:22px;font-size:.95rem;}
+  .info p{margin:0 0 8px;}
+  .info p:last-child{margin-bottom:0;}
+  .info-split{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;}
+  .info-split .txt{flex:1 1 340px;min-width:0;}
+  code{font-family:var(--mono);font-size:.9em;background:#E8EAE4;padding:1px 5px;}
+
+  .demo{background:#fff;border:1px solid var(--line);padding:10px 14px;margin:10px 0;overflow-x:auto;}
+  .demo div{display:flex;gap:14px;align-items:baseline;white-space:nowrap;}
+  .demo span.k{
+    font-family:var(--mono);font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-3);width:9.5rem;flex:0 0 auto;
+  }
+  .demo span.v{font-family:var(--mono);font-size:.92rem;}
+
+  .step{margin-bottom:30px;}
+  .step:last-child{margin-bottom:0;}
+  .step h3{
+    font-family:var(--mono);font-size:.76rem;letter-spacing:.14em;text-transform:uppercase;
+    font-weight:700;margin:0 0 8px;color:var(--ink);
+  }
+  .step p{margin:0 0 10px;}
+  .case{font-size:.93rem;color:var(--ink-2);margin:0 0 8px;}
+
+  table.truth{border-collapse:collapse;font-family:var(--mono);font-size:.95rem;background:var(--card);}
+  table.truth th,table.truth td{border:1px solid var(--line);width:38px;height:34px;text-align:center;padding:0;}
+  table.truth th{background:var(--ink);color:#fff;font-weight:700;}
+
+  .answer{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:12px;}
+  label.field{
+    font-family:var(--mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);
+  }
+  input[type=text]{
+    font-family:var(--mono);font-size:.95rem;padding:7px 9px;
+    border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:0;
+  }
+  input[type=text]:focus{outline:2px solid var(--pink);outline-offset:1px;}
+  input.ok{border-color:var(--ok);background:#EEF6F1;}
+  input.w-short{width:5rem;}
+  input.w-ip{width:9.5rem;}
+  input.w-bits{width:11rem;letter-spacing:.09em;}
+  input.w-pre{width:3.4rem;}
+  input.w-oct{width:3.6rem;text-align:center;}
+
+  button.check{
+    font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;
+    padding:9px 16px;border:1px solid var(--ink);background:var(--ink);color:#fff;cursor:pointer;border-radius:0;
+  }
+  button.check:hover{background:#000;}
+  button.check:focus-visible{outline:2px solid var(--pink);outline-offset:2px;}
+
+  .msg{font-size:.88rem;min-height:1.3em;margin-top:8px;}
+  .msg.ok{color:var(--ok);font-weight:600;}
+  .msg.hint{color:var(--warn);}
+
+  .block{
+    border:1px solid var(--line);background:var(--card-2);padding:14px 16px;margin-bottom:16px;overflow-x:auto;
+  }
+  .block h4{
+    font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
+    margin:0 0 10px;font-weight:700;
+  }
+
+  table.div{border-collapse:collapse;font-size:.93rem;margin-top:6px;}
+  table.div th{
+    font-family:var(--mono);text-align:left;font-weight:700;font-size:.68rem;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--ink-2);padding:0 8px 6px;border-bottom:1px solid var(--line);
+  }
+  table.div td{padding:3px 8px;}
+  table.div .op{font-family:var(--mono);color:var(--ink-2);white-space:nowrap;}
+  .dividend{display:inline-block;min-width:3.2rem;text-align:right;color:var(--ink);}
+  .dividend.empty{color:var(--line);}
+  table.div input{width:4.2rem;text-align:right;}
+
+  .divgrid{display:flex;flex-wrap:wrap;gap:18px;}
+  .divgrid .block{flex:1 1 300px;margin-bottom:0;}
+
+  table.calc{border-collapse:collapse;}
+  table.calc td{padding:3px 0;vertical-align:middle;}
+  table.calc td.lab{
+    font-size:.82rem;text-align:right;padding-right:16px;white-space:nowrap;color:var(--ink-2);
+  }
+  table.calc td.lab b{color:var(--ink);font-weight:600;font-family:var(--mono);font-size:.86rem;}
+  table.calc td.dot{font-family:var(--mono);color:var(--ink-2);width:10px;text-align:center;}
+  table.calc tr.rule td{border-top:2px solid var(--ink);padding:0;height:0;}
+  table.calc tr.maskrow td.bf{color:var(--pink);font-weight:700;}
+  table.calc tr.res td.lab,table.calc tr.resrow td.lab{color:var(--ink);font-weight:600;}
+  table.calc tr.resrow td.bf{font-weight:600;}
+
+  .bf{font-family:var(--mono);font-size:.95rem;letter-spacing:.34em;text-align:center;white-space:nowrap;}
+  td.bf{padding:4px 0;}
+  .bf-8{width:134px;}
+  .bf-4{width:78px;}
+  input.bf{padding:6px 0;border:1px solid var(--line);background:#fff;color:var(--ink);}
+  input.bf:focus{outline:2px solid var(--pink);outline-offset:1px;}
+  input.bf.ok{border-color:var(--ok);background:#EEF6F1;}
+
+  table.grid{border-collapse:collapse;width:100%;font-size:.9rem;}
+  table.grid th{
+    font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;
+    background:var(--ink);color:#fff;text-align:left;padding:7px 9px;font-weight:700;white-space:nowrap;
+  }
+  table.grid td{border-bottom:1px solid var(--line-2);padding:6px 9px;vertical-align:middle;}
+  table.grid td.key{font-family:var(--mono);white-space:nowrap;}
+  table.grid td.task{font-size:.88rem;min-width:14rem;}
+  table.grid input{width:100%;min-width:4.5rem;}
+  table.grid input.w-oct,table.grid input.w-pre{width:3.6rem;min-width:0;}
+  .maskcell{display:flex;align-items:center;gap:2px;font-family:var(--mono);font-size:.88rem;white-space:nowrap;}
+  .prefcell{display:flex;align-items:center;gap:3px;font-family:var(--mono);}
+  .scroll{overflow-x:auto;}
+
+  .blocks{display:flex;border:1px solid var(--line);background:#fff;margin:8px 0 14px;}
+  .blocks div{
+    flex:1;text-align:center;padding:9px 2px;border-right:1px solid var(--line);
+    font-family:var(--mono);font-size:.8rem;color:var(--ink-2);
+  }
+  .blocks div:last-child{border-right:none;}
+  .blocks div span{display:block;color:var(--pink);font-weight:700;font-size:.9rem;}
+
+  table.steps{border-collapse:collapse;margin-bottom:4px;}
+  table.steps td{padding:4px 0;vertical-align:top;}
+  table.steps td.lab{font-size:.85rem;color:var(--ink-2);padding-right:20px;white-space:nowrap;}
+  table.steps td.frm{font-size:.9rem;}
+  table.steps td.frm em{font-style:normal;color:var(--ink-2);}
+  table.steps td.frm b{display:block;font-family:var(--mono);font-weight:600;font-size:.93rem;margin-top:2px;}
+
+  .note{border-left:3px solid var(--pink);background:var(--card-2);padding:10px 14px;font-size:.93rem;margin:0 0 14px;}
+  .note p{margin:0;}
+
+  .locked{opacity:.4;pointer-events:none;}
+  .lock-note{font-size:.88rem;color:var(--ink-2);margin-bottom:10px;}
+
+  .qbox{margin-top:18px;}
+  .choices{display:flex;flex-direction:column;gap:6px;margin:8px 0 4px;}
+  .choices label{font-size:.94rem;display:flex;gap:9px;align-items:flex-start;cursor:pointer;}
+  input[type=checkbox],input[type=radio]{width:17px;height:17px;accent-color:var(--pink);flex:0 0 auto;margin-top:3px;}
+
+  @media (max-width:600px){
+    .sheet{padding:22px 13px 56px;}
+    .bf{font-size:.82rem;letter-spacing:.18em;}
+    .bf-8{width:96px;}
+    .bf-4{width:56px;}
+    table.calc td.lab{font-size:.74rem;padding-right:8px;}
+    .demo span.k{width:auto;}
+    .demo div{display:block;}
+  }
+  @media print{
+    body{background:#fff;font-size:11.5pt;}
+    button.check{display:none;}
+    .locked{opacity:1;}
+    section.task{break-inside:avoid;box-shadow:none;}
+    header.top{box-shadow:none;}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none !important;}}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+<header class="top">
+  <div class="kicker">Netzwerktechnik / IT-Systemhaus</div>
+  <h1>Von der Binärzahl zum Subnetz</h1>
+  <p>Du bist im Ausbildungsbetrieb für die Netzdokumentation und die Adressplanung mit zuständig. Die vier Aufträge auf diesem Blatt sind in einer Woche angefallen.</p>
+</header>
+
+<!-- ============ AUFGABE 1 ============ -->
+<section class="task" id="a1">
+  <div class="task-head">
+    <span class="num">Aufgabe 1</span>
+    <h2>Binär rechnen</h2>
+  </div>
+
+  <div class="info">
+    <p>Eine IPv4-Adresse besteht aus 32 Bit, aufgeteilt in vier Oktetts zu je 8 Bit. Geschrieben wird sie dezimal, verarbeitet wird sie binär. Alles, was mit Subnetzen zu tun hat, passiert auf der Bitebene.</p>
+    <p>Jede Stelle einer Binärzahl hat einen festen Wert. Die Stelle ganz rechts hat den Wert 1, jede Stelle weiter links den doppelten Wert der vorherigen. Der Wert der Zahl ist die Summe der Stellen, an denen eine 1 steht.</p>
+  </div>
+
+  <div class="step">
+    <h3>1a Binär nach dezimal</h3>
+    <p>Rechne beide Oktetts in den dezimalen Wert um.</p>
+    <div class="answer">
+      <label class="field" for="inDec1">11000000</label>
+      <input type="text" id="inDec1" class="w-short" inputmode="numeric" autocomplete="off">
+      <label class="field" for="inDec2">10101000</label>
+      <input type="text" id="inDec2" class="w-short" inputmode="numeric" autocomplete="off">
+      <button class="check" data-check="a1a">Prüfen</button>
+    </div>
+    <div class="msg" id="msg-a1a"></div>
+  </div>
+
+  <div class="step">
+    <h3>1b Dezimal nach binär mit dem Divisionsrestverfahren</h3>
+    <p>Teile die Zahl fortlaufend durch 2 und notiere Ergebnis und Rest, bis das Ergebnis 0 ist. Das Ergebnis einer Zeile ist die Zahl, mit der du in der nächsten Zeile weiterrechnest. Nicht benötigte Zeilen bleiben leer.</p>
+    <p><strong>Achte auf die Leserichtung:</strong> Die Binärzahl liest du aus der Spalte Rest von unten nach oben. Fülle das Oktett anschließend links mit Nullen auf acht Stellen auf.</p>
+    <div class="divgrid" id="divGrid"></div>
+  </div>
+
+  <div class="step">
+    <h3>1c Eine vollständige Adresse</h3>
+    <p class="case">Ein neuer Server wird in Betrieb genommen und bekommt die Adresse 10.172.45.131.</p>
+    <p>Schreibe die Adresse binär.</p>
+    <div class="block">
+      <table class="calc" id="ipBinTable"></table>
+    </div>
+    <div class="answer">
+      <button class="check" data-check="a1c">Prüfen</button>
+    </div>
+    <div class="msg" id="msg-a1c"></div>
+  </div>
+</section>
+
+<!-- ============ AUFGABE 2 ============ -->
+<section class="task" id="a2">
+  <div class="task-head">
+    <span class="num">Aufgabe 2</span>
+    <h2>Subnetzmaske und CIDR</h2>
+  </div>
+
+  <div class="brief">
+    <span class="who">Ticket 4127</span>
+    <p>Im Übergabeprotokoll einer Fremdfirma steht eine Subnetzmaske, die es so nicht geben kann. Bevor du das Ticket zurückgibst, sollst du begründen können, warum.</p>
+  </div>
+
+  <div class="info">
+    <p>Eine Subnetzmaske ist keine beliebige Zahl. Binär betrachtet besteht sie aus einer geschlossenen Kette von Einsen, danach folgen ausschließlich Nullen. Sobald die erste 0 steht, darf keine 1 mehr kommen.</p>
+    <div class="demo">
+      <div><span class="k">Subnetzmaske</span><span class="v">255.255.255.161</span></div>
+      <div><span class="k">Binär</span><span class="v">11111111.11111111.11111111.10100001</span></div>
+    </div>
+    <p>Im letzten Oktett folgen nach der ersten 0 noch weitere Einsen. <code>255.255.255.161</code> ist deshalb keine gültige Subnetzmaske.</p>
+    <p>Weil die Einsen immer am Stück stehen, reicht ihre Anzahl aus, um die Maske eindeutig zu beschreiben. Genau das macht die CIDR-Schreibweise. CIDR steht für Classless Inter-Domain Routing und hängt die Anzahl der Einsen als Suffix an die Adresse. <code>255.255.255.0</code> enthält 24 Einsen, aus <code>192.168.10.5</code> mit dieser Maske wird also <code>192.168.10.5/24</code>.</p>
+    <p>Classless bedeutet, dass die Grenze zwischen Netz- und Hostanteil an jeder beliebigen Bitposition liegen darf. Vor CIDR war sie durch die Adressklassen A, B und C fest auf 8, 16 oder 24 Bit gesetzt.</p>
+  </div>
+
+  <div class="step">
+    <h3>2a Gültig oder nicht</h3>
+    <p class="case">Aus dem Übergabeprotokoll der Fremdfirma stammen diese Angaben.</p>
+    <p>Kreuze alle an, die eine gültige Subnetzmaske sind.</p>
+    <div class="choices" id="maskChoices"></div>
+    <div class="answer">
+      <button class="check" data-check="a2a">Prüfen</button>
+    </div>
+    <div class="msg" id="msg-a2a"></div>
+  </div>
+
+  <div class="step">
+    <h3>2b Von der Maske zur CIDR-Schreibweise</h3>
+    <p class="case">Der Kunde liefert die Masken dezimal, das Dokumentationstool des Betriebs erwartet CIDR.</p>
+    <p>Schreibe jede Subnetzmaske binär und gib danach das passende CIDR-Suffix an.</p>
+    <div id="cidrFrom"></div>
+    <div class="answer">
+      <button class="check" data-check="a2b">Prüfen</button>
+    </div>
+    <div class="msg" id="msg-a2b"></div>
+  </div>
+
+  <div class="step">
+    <h3>2c Von der CIDR-Schreibweise zur Maske</h3>
+    <p class="case">Umgekehrter Fall: In der Routerkonfiguration steht CIDR, das ältere Gerät beim Kunden verlangt die dezimale Maske.</p>
+    <p>Setze die Einsen binär und übertrage das Ergebnis in die dezimale Schreibweise.</p>
+    <div id="cidrTo"></div>
+    <div class="answer">
+      <button class="check" data-check="a2c">Prüfen</button>
+    </div>
+    <div class="msg" id="msg-a2c"></div>
+  </div>
+</section>
+
+<!-- ============ AUFGABE 3 ============ -->
+<section class="task" id="a3">
+  <div class="task-head">
+    <span class="num">Aufgabe 3</span>
+    <h2>Netze berechnen</h2>
+  </div>
+
+  <div class="brief">
+    <span class="who">Chef</span>
+    <p>Für mehrere Kunden stehen Adresspläne an. Du übernimmst die Berechnung der Subnetze, die Kollegin trägt sie danach in die Router ein.</p>
+  </div>
+
+  <div class="info">
+    <p>Wegen der Regel aus Aufgabe 2 kann höchstens ein Oktett der Subnetzmaske einen Wert zwischen 0 und 255 haben, alle anderen sind 255 oder 0. Genau dieses eine Oktett zerlegt den Adressbereich in gleich große Blöcke.</p>
+    <p>Die Netzadresse ist die erste Adresse eines Subnetzes. Die Netzadressen sind die Vielfachen der Blockgröße, du zählst also in Schritten der Blockgröße hoch. Die letzte Adresse eines Subnetzes ist die Broadcastadresse. Alle Adressen dazwischen sind nutzbare Hostadressen. Netzadresse und Broadcastadresse dürfen nicht an einen Host vergeben werden.</p>
+    <div class="demo">
+      <div><span class="k">Netz</span><span class="v">192.168.1.0/24</span></div>
+      <div><span class="k">Netzadresse</span><span class="v">192.168.1.0</span></div>
+      <div><span class="k">Erste Hostadresse</span><span class="v">192.168.1.1</span></div>
+      <div><span class="k">Letzte Hostadresse</span><span class="v">192.168.1.254</span></div>
+      <div><span class="k">Broadcastadresse</span><span class="v">192.168.1.255</span></div>
+    </div>
+  </div>
+
+  <div class="block">
+    <h4>Beispiel 255.255.255.192 also /26</h4>
+    <table class="steps">
+      <tr>
+        <td class="lab">Hostbits</td>
+        <td class="frm"><em>Bits einer IPv4-Adresse minus Anzahl der Einsen in der Subnetzmaske</em><b>32 - 26 = 6</b></td>
+      </tr>
+      <tr>
+        <td class="lab">Blockgröße</td>
+        <td class="frm"><em>2 hoch Hostbits oder 256 minus Wert des betroffenen Oktetts</em><b>2<sup>6</sup> = 64 oder 256 - 192 = 64</b></td>
+      </tr>
+      <tr>
+        <td class="lab">Netze im Oktett</td>
+        <td class="frm"><em>256 geteilt durch die Blockgröße</em><b>256 : 64 = 4</b></td>
+      </tr>
+      <tr>
+        <td class="lab">Nutzbare Hosts</td>
+        <td class="frm"><em>2 hoch Hostbits minus Netzadresse und Broadcastadresse</em><b>2<sup>6</sup> - 2 = 62</b></td>
+      </tr>
+    </table>
+    <div class="blocks">
+      <div><span>.0</span>0 bis 63</div>
+      <div><span>.64</span>64 bis 127</div>
+      <div><span>.128</span>128 bis 191</div>
+      <div><span>.192</span>192 bis 255</div>
+    </div>
+    <p style="margin:0;font-size:.93rem;">Im ersten Block ist .0 die Netzadresse und .63 die Broadcastadresse, nutzbar sind .1 bis .62.</p>
+  </div>
+
+  <div class="step">
+    <h3>3a Präfix und Blockgröße</h3>
+    <p class="case">Für die interne Formelsammlung des Betriebs soll eine Übersicht entstehen.</p>
+    <p>Fülle die Tabelle aus. Trage in der Spalte Subnetzmaske nur das Oktett ein, das nicht 255 oder 0 ist.</p>
+    <div class="scroll">
+      <table class="grid" id="prefixTable"></table>
+    </div>
+    <div class="answer">
+      <button class="check" data-check="a3a">Prüfen</button>
+    </div>
+    <div class="msg" id="msg-a3a"></div>
+  </div>
+
+  <div class="step">
+    <h3>3b Netzadresse, Broadcast und Hostbereich</h3>
+    <p class="case">Aus fünf Tickets liegen dir jeweils die Adresse eines Geräts und das Präfix vor.</p>
+    <p>Bestimme das Subnetz, in dem der Host liegt. Trage vollständige Adressen ein, zum Beispiel 192.168.1.0.</p>
+    <div class="scroll">
+      <table class="grid" id="subnetTable"></table>
+    </div>
+    <div class="answer">
+      <button class="check" data-check="a3b">Prüfen</button>
+    </div>
+    <div class="msg" id="msg-a3b"></div>
+  </div>
+
+  <div class="step">
+    <h3>3c Selbes Netz oder nicht</h3>
+    <p class="case">Ein Kollege behauptet, alle Geräte mit 192.168.20 am Anfang könnten sich ohnehin gegenseitig erreichen. Stimmt das?</p>
+    <p>Ein Client hat die Adresse <strong>192.168.20.55/28</strong>. Welche der folgenden Geräte erreicht er direkt?</p>
+    <div class="choices" id="pick28"></div>
+    <div class="answer">
+      <button class="check" data-check="a3c">Prüfen</button>
+    </div>
+    <div class="msg" id="msg-a3c"></div>
+  </div>
+
+  <div class="step">
+    <h3>3d Netze aufteilen</h3>
+    <p>Wähle jeweils das Präfix, das den Bedarf deckt und dabei möglichst wenige Adressen verschenkt. Gib an, wie viele Subnetze entstehen und wie viele Hosts jedes davon nutzen kann.</p>
+    <div class="scroll">
+      <table class="grid" id="splitTable"></table>
+    </div>
+    <div class="answer">
+      <button class="check" data-check="a3d">Prüfen</button>
+    </div>
+    <div class="msg" id="msg-a3d"></div>
+  </div>
+</section>
+
+<!-- ============ AUFGABE 4 ============ -->
+<section class="task" id="a4">
+  <div class="task-head">
+    <span class="num">Aufgabe 4</span>
+    <h2>Wer erreicht wen direkt</h2>
+  </div>
+
+  <div class="brief">
+    <span class="who">Azubi aus dem zweiten Lehrjahr</span>
+    <p>Vor der Abschlussprüfung fragt dich dein Azubikollege, woher ein Gerät eigentlich weiß, ob es ein anderes direkt erreicht. Du erklärst es ihm am logischen UND.</p>
+  </div>
+
+  <div class="info">
+    <div class="info-split">
+      <div class="txt">
+        <p>Jedes Gerät berechnet aus seiner eigenen IP-Adresse und seiner eigenen Subnetzmaske die Netzadresse. Verknüpft werden beide mit dem logischen UND.</p>
+        <p>Dazu schreibt es Adresse und Subnetzmaske binär übereinander und darunter eine neue Ergebniszeile. Verknüpft wird spaltenweise, geschrieben als &#8743;. Stehen in einer Spalte zwei Einsen, ist das Ergebnis 1. In jedem anderen Fall 0.</p>
+      </div>
+      <table class="truth">
+        <tr><th class="corner">&#8743;</th><th>0</th><th>1</th></tr>
+        <tr><th>0</th><td>0</td><td>0</td></tr>
+        <tr><th>1</th><td>0</td><td>1</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="step">
+    <h3>4a Die vier Grundfälle</h3>
+    <p>Mehr als vier Kombinationen gibt es nicht. Trage die Ergebniszeile ein.</p>
+    <div class="block">
+      <table class="calc" id="ruleTable"></table>
+    </div>
+    <div class="answer">
+      <button class="check" data-check="a4a">Prüfen</button>
+    </div>
+    <div class="msg" id="msg-a4a"></div>
+  </div>
+
+  <div class="step">
+    <h3>4b Erster Fall, gleiche Subnetzmaske</h3>
+    <p class="case">Drei Geräte hängen beim Kunden am selben Switch. Alle drei Adressen beginnen mit 192.168.20.</p>
+    <p>Die Binärzahlen sind bereits eingetragen. Verknüpfe jede Spalte mit UND und trage die Netzadresse ein.</p>
+    <div id="andBlocksA"></div>
+    <div class="answer">
+      <button class="check" data-check="a4b">Prüfen</button>
+    </div>
+    <div class="msg" id="msg-a4b"></div>
+  </div>
+
+  <div class="step">
+    <h3>4c Auswerten</h3>
+    <p class="lock-note" id="lockNoteA">Die Auswertung wird frei, sobald alle drei Netzadressen aus 4b stimmen.</p>
+    <div id="evalA" class="locked">
+      <p>Überall dort, wo die Subnetzmaske eine 1 hat, bleibt die Adresse in der Ergebniszeile stehen. Dieser Teil beschreibt das Netz. Überall dort, wo die Subnetzmaske eine 0 hat, wird die Adresse abgeschnitten. Dieser Teil beschreibt nur den einzelnen Host.</p>
+      <p>Bevor ein Gerät sendet, legt es seine eigene Subnetzmaske auch über die Zieladresse. Kommt dieselbe Netzadresse heraus wie bei sich selbst, liegt das Ziel im selben Netz und das Paket geht direkt über den Switch. Kommt eine andere Netzadresse heraus, liegt das Ziel in einem fremden Netz und das Gerät erreicht es nicht von sich aus.</p>
+      <div class="block" id="compareA"></div>
+      <div class="qbox">
+        <p><strong>Vergleiche die drei Netzadressen. Welche Geräte erreichen sich direkt?</strong></p>
+        <div class="choices" id="pickA"></div>
+        <div class="answer">
+          <button class="check" data-check="a4c">Prüfen</button>
+        </div>
+        <div class="msg" id="msg-a4c"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <h3>4d Zweiter Fall, unterschiedliche Subnetzmasken</h3>
+    <p class="case">Im Serverraum eines anderen Kunden wurden die Masken bei der Inbetriebnahme nicht einheitlich gesetzt.</p>
+    <p>Verknüpfe wieder jede Spalte mit UND und trage die Netzadresse ein.</p>
+    <div id="andBlocksB"></div>
+    <div class="answer">
+      <button class="check" data-check="a4d">Prüfen</button>
+    </div>
+    <div class="msg" id="msg-a4d"></div>
+  </div>
+
+  <div class="step">
+    <h3>4e Auswerten</h3>
+    <p class="lock-note" id="lockNoteB">Die Auswertung wird frei, sobald alle drei Netzadressen aus 4d stimmen.</p>
+    <div id="evalB" class="locked">
+      <p>In 4b hatten alle Geräte dieselbe Subnetzmaske. Dann genügt der Vergleich der Netzadressen, denn jedes Gerät rechnet mit derselben Trennlinie. Hier ist das nicht mehr so. Jedes Gerät rechnet mit seiner eigenen Maske, auch wenn es die Adresse eines anderen Geräts prüft.</p>
+      <div class="block" id="compareB"></div>
+      <div class="qbox">
+        <p><strong>Der Webserver sendet an den Backup-Server. Rechne beide Richtungen einzeln durch: Der Webserver legt seine Maske über 10.0.5.200, der Backup-Server legt seine Maske über 10.0.5.30. Was ergibt sich daraus?</strong></p>
+        <div class="choices" id="pickB"></div>
+        <div class="answer">
+          <button class="check" data-check="a4e">Prüfen</button>
+        </div>
+        <div class="msg" id="msg-a4e"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ================= Helfer ================= */
+  function $(id){ return document.getElementById(id); }
+  function say(id, text, kind){
+    var el = $(id);
+    el.textContent = text;
+    el.className = "msg" + (kind ? " " + kind : "");
+  }
+  function clean(v){ return (v || "").replace(/\s+/g, "").trim(); }
+  function binVal(v){ return parseInt(v, 2); }
+  function pad8(n){
+    var s = n.toString(2);
+    while (s.length < 8) s = "0" + s;
+    return s;
+  }
+  function toBinOctets(dotted){
+    var parts = dotted.split(".");
+    var out = [];
+    for (var i = 0; i < parts.length; i++) out.push(pad8(Number(parts[i])));
+    return out;
+  }
+  function andOctets(a, b){
+    var out = [];
+    for (var i = 0; i < a.length; i++) out.push(pad8(binVal(a[i]) & binVal(b[i])));
+    return out;
+  }
+  function limitBits(el, max){
+    el.addEventListener("input", function(){
+      el.value = el.value.replace(/[^01]/g, "").slice(0, max);
+    });
+  }
+  function onlyDigits(el){
+    el.addEventListener("input", function(){
+      el.value = el.value.replace(/[^0-9]/g, "");
+    });
+  }
+  function maskFromPrefix(p){
+    var out = [];
+    for (var i = 0; i < 4; i++){
+      var bits = Math.min(8, Math.max(0, p - i * 8));
+      out.push(256 - Math.pow(2, 8 - bits));
+    }
+    return out;
+  }
+  function maskDotted(p){ return maskFromPrefix(p).join("."); }
+  function ipToInt(ip){
+    var p = ip.split(".");
+    return (((Number(p[0]) * 256 + Number(p[1])) * 256 + Number(p[2])) * 256 + Number(p[3]));
+  }
+  function intToIp(n){
+    return [Math.floor(n / 16777216) % 256, Math.floor(n / 65536) % 256,
+            Math.floor(n / 256) % 256, n % 256].join(".");
+  }
+  function subnetInfo(ip, prefix){
+    var size = Math.pow(2, 32 - prefix);
+    var base = Math.floor(ipToInt(ip) / size) * size;
+    return {
+      net: intToIp(base),
+      bc: intToIp(base + size - 1),
+      first: intToIp(base + 1),
+      last: intToIp(base + size - 2)
+    };
+  }
+  function normIp(v){ return clean(v).replace(/^\.+|\.+$/g, ""); }
+
+  /* ================= Zeilenbau für Bitblöcke ================= */
+  function labelCell(top, sub){
+    var td = document.createElement("td");
+    td.className = "lab";
+    if (sub){ td.innerHTML = top + " <b>" + sub + "</b>"; }
+    else { td.textContent = top; }
+    return td;
+  }
+  function fixedRow(labTop, labSub, groups, cls){
+    var tr = document.createElement("tr");
+    if (cls) tr.className = cls;
+    tr.appendChild(labelCell(labTop, labSub));
+    for (var i = 0; i < groups.length; i++){
+      if (i > 0){
+        var dot = document.createElement("td");
+        dot.className = "dot";
+        dot.textContent = ".";
+        tr.appendChild(dot);
+      }
+      var td = document.createElement("td");
+      td.className = "bf bf-" + groups[i].length;
+      td.textContent = groups[i];
+      tr.appendChild(td);
+    }
+    return tr;
+  }
+  function ruleRow(cols){
+    var tr = document.createElement("tr");
+    tr.className = "rule";
+    var td = document.createElement("td");
+    td.colSpan = cols;
+    tr.appendChild(td);
+    return tr;
+  }
+  function inputRow(labTop, labSub, groups, store, aria, cls){
+    var tr = document.createElement("tr");
+    tr.className = cls || "res";
+    tr.appendChild(labelCell(labTop, labSub));
+    for (var i = 0; i < groups.length; i++){
+      if (i > 0){
+        var dot = document.createElement("td");
+        dot.className = "dot";
+        dot.textContent = ".";
+        tr.appendChild(dot);
+      }
+      var td = document.createElement("td");
+      var inp = document.createElement("input");
+      inp.type = "text";
+      inp.className = "bf bf-" + groups[i];
+      inp.autocomplete = "off";
+      inp.spellcheck = false;
+      inp.setAttribute("aria-label", aria + " " + (i + 1));
+      limitBits(inp, groups[i]);
+      td.appendChild(inp);
+      tr.appendChild(td);
+      store.push(inp);
+    }
+    return tr;
+  }
+
+  var checks = {};
+
+  /* ================= 1a ================= */
+  var DEC1 = 192, DEC2 = 168;
+  onlyDigits($("inDec1"));
+  onlyDigits($("inDec2"));
+
+  checks.a1a = function(){
+    var a = clean($("inDec1").value), b = clean($("inDec2").value);
+    if (a === "" || b === ""){ say("msg-a1a", "Trage beide Werte ein.", "hint"); return; }
+    var okA = Number(a) === DEC1, okB = Number(b) === DEC2;
+    $("inDec1").classList.toggle("ok", okA);
+    $("inDec2").classList.toggle("ok", okB);
+    if (okA && okB){ say("msg-a1a", "Beide Werte stimmen.", "ok"); }
+    else if (!okA && !okB){ say("msg-a1a", "Beide Werte stimmen noch nicht. Beginne rechts mit dem Wert 1 und verdopple nach links.", "hint"); }
+    else { say("msg-a1a", "Ein Wert stimmt, der andere noch nicht.", "hint"); }
+  };
+
+  /* ================= 1b Divisionsrestverfahren ================= */
+  var DIV_TARGETS = [172, 45, 131, 249];
+  var DIV_ROWS = 8;
+  var divStore = [];
+
+  function expectedDivision(n){
+    var steps = [];
+    while (n > 0){
+      steps.push({ q: Math.floor(n / 2), r: n % 2 });
+      n = Math.floor(n / 2);
+    }
+    return steps;
+  }
+
+  (function buildDivisions(){
+    var host = $("divGrid");
+    for (var t = 0; t < DIV_TARGETS.length; t++){
+      (function(idx, target){
+        var wrap = document.createElement("div");
+        wrap.className = "block";
+
+        var h = document.createElement("h4");
+        h.textContent = "Zahl " + target;
+        wrap.appendChild(h);
+
+        var tbl = document.createElement("table");
+        tbl.className = "div";
+        var thead = document.createElement("thead");
+        thead.innerHTML = "<tr><th>Rechnung</th><th>Ergebnis</th><th>Rest</th></tr>";
+        tbl.appendChild(thead);
+        var tb = document.createElement("tbody");
+
+        var quots = [], rests = [], dividends = [];
+        for (var r = 0; r < DIV_ROWS; r++){
+          var tr = document.createElement("tr");
+
+          var td1 = document.createElement("td");
+          td1.className = "op";
+          var dv = document.createElement("span");
+          dv.className = "dividend";
+          if (r === 0){ dv.textContent = String(target); }
+          else { dv.classList.add("empty"); dv.textContent = "\u2013"; }
+          td1.appendChild(dv);
+          td1.appendChild(document.createTextNode(" : 2 ="));
+          dividends.push(dv);
+
+          var td2 = document.createElement("td");
+          var q = document.createElement("input");
+          q.type = "text";
+          q.inputMode = "numeric";
+          q.autocomplete = "off";
+          q.setAttribute("aria-label", "Ergebnis Zeile " + (r + 1) + " für " + target);
+          td2.appendChild(q);
+          quots.push(q);
+
+          var td3 = document.createElement("td");
+          var lbl = document.createElement("span");
+          lbl.className = "op";
+          lbl.style.marginRight = "6px";
+          lbl.textContent = "Rest";
+          var rest = document.createElement("input");
+          rest.type = "text";
+          rest.inputMode = "numeric";
+          rest.autocomplete = "off";
+          rest.style.width = "3rem";
+          rest.setAttribute("aria-label", "Rest Zeile " + (r + 1) + " für " + target);
+          td3.appendChild(lbl);
+          td3.appendChild(rest);
+          rests.push(rest);
+
+          tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3);
+          tb.appendChild(tr);
+        }
+        tbl.appendChild(tb);
+        wrap.appendChild(tbl);
+
+        for (var k = 0; k < DIV_ROWS; k++){
+          (function(i){
+            quots[i].addEventListener("input", function(){
+              quots[i].value = quots[i].value.replace(/[^0-9]/g, "");
+              if (i + 1 < DIV_ROWS){
+                var v = quots[i].value.trim();
+                if (v === ""){
+                  dividends[i + 1].textContent = "\u2013";
+                  dividends[i + 1].classList.add("empty");
+                } else {
+                  dividends[i + 1].textContent = v;
+                  dividends[i + 1].classList.remove("empty");
+                }
+              }
+            });
+            rests[i].addEventListener("input", function(){
+              rests[i].value = rests[i].value.replace(/[^0-9]/g, "");
+            });
+          })(k);
+        }
+
+        var ans = document.createElement("div");
+        ans.className = "answer";
+        var lab = document.createElement("label");
+        lab.className = "field";
+        lab.textContent = "Oktett";
+        lab.setAttribute("for", "inBin" + idx);
+        var bin = document.createElement("input");
+        bin.type = "text";
+        bin.id = "inBin" + idx;
+        bin.className = "w-bits";
+        bin.autocomplete = "off";
+        bin.spellcheck = false;
+        limitBits(bin, 8);
+        var btn = document.createElement("button");
+        btn.className = "check";
+        btn.dataset.check = "a1b" + idx;
+        btn.textContent = "Prüfen";
+        ans.appendChild(lab); ans.appendChild(bin); ans.appendChild(btn);
+        wrap.appendChild(ans);
+
+        var msg = document.createElement("div");
+        msg.className = "msg";
+        msg.id = "msg-a1b" + idx;
+        wrap.appendChild(msg);
+
+        host.appendChild(wrap);
+        divStore.push({ target: target, quots: quots, rests: rests, bin: bin });
+
+        checks["a1b" + idx] = function(){
+          var s = divStore[idx];
+          var exp = expectedDivision(s.target);
+          for (var i = 0; i < DIV_ROWS; i++){
+            var qv = clean(s.quots[i].value), rv = clean(s.rests[i].value);
+            if (i < exp.length){
+              if (qv === "" || rv === ""){ say("msg-a1b" + idx, "Zeile " + (i + 1) + " ist noch nicht vollständig.", "hint"); return; }
+              if (Number(qv) !== exp[i].q || Number(rv) !== exp[i].r){
+                say("msg-a1b" + idx, "In Zeile " + (i + 1) + " steckt noch ein Fehler.", "hint"); return;
+              }
+            } else if (qv !== "" || rv !== ""){
+              say("msg-a1b" + idx, "Zeile " + (i + 1) + " wird nicht mehr gebraucht. Das Verfahren endet, sobald das Ergebnis 0 ist.", "hint"); return;
+            }
+          }
+          var bin = clean(s.bin.value);
+          if (bin === ""){ say("msg-a1b" + idx, "Die Tabelle stimmt. Trage jetzt das Oktett ein.", "hint"); return; }
+          if (bin.length !== 8){ say("msg-a1b" + idx, "Ein Oktett hat acht Stellen. Fülle links mit Nullen auf.", "hint"); return; }
+          if (binVal(bin) !== s.target){
+            say("msg-a1b" + idx, "Diese Bitfolge ergibt nicht " + s.target + ". Achte auf die Leserichtung der Reste.", "hint"); return;
+          }
+          s.bin.classList.add("ok");
+          say("msg-a1b" + idx, "Tabelle und Oktett stimmen.", "ok");
+        };
+      })(t, DIV_TARGETS[t]);
+    }
+  })();
+
+  /* ================= 1c ================= */
+  var SERVER_IP = "10.172.45.131";
+  var ipBinInputs = [];
+  (function(){
+    $("ipBinTable").appendChild(inputRow("IP-Adresse", SERVER_IP, [8,8,8,8], ipBinInputs, "Oktett", "res"));
+  })();
+
+  checks.a1c = function(){
+    var exp = toBinOctets(SERVER_IP), allOk = true;
+    for (var i = 0; i < 4; i++){
+      var v = clean(ipBinInputs[i].value);
+      if (v.length !== 8){ say("msg-a1c", "Oktett " + (i + 1) + " ist noch nicht vollständig. Ein Oktett hat acht Stellen.", "hint"); return; }
+      var ok = (v === exp[i]);
+      ipBinInputs[i].classList.toggle("ok", ok);
+      if (!ok) allOk = false;
+    }
+    if (allOk){ say("msg-a1c", "Die Adresse stimmt.", "ok"); }
+    else { say("msg-a1c", "Mindestens ein Oktett stimmt noch nicht.", "hint"); }
+  };
+
+  /* ================= 2a ================= */
+  var MASK_OPTIONS = [
+    { v: "m1", text: "255.255.255.0",   valid: true  },
+    { v: "m2", text: "255.255.161.0",   valid: false },
+    { v: "m3", text: "255.254.0.0",     valid: true  },
+    { v: "m4", text: "255.0.255.0",     valid: false },
+    { v: "m5", text: "255.255.252.0",   valid: true  },
+    { v: "m6", text: "255.255.255.130", valid: false }
+  ];
+  (function(){
+    var host = $("maskChoices");
+    MASK_OPTIONS.forEach(function(o){
+      var lab = document.createElement("label");
+      var cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.className = "pickmask";
+      cb.value = o.v;
+      var sp = document.createElement("span");
+      sp.style.fontFamily = "var(--mono)";
+      sp.textContent = o.text;
+      lab.appendChild(cb);
+      lab.appendChild(sp);
+      host.appendChild(lab);
+    });
+  })();
+
+  checks.a2a = function(){
+    var boxes = document.querySelectorAll("input.pickmask");
+    var any = false, allOk = true;
+    for (var i = 0; i < boxes.length; i++){
+      if (boxes[i].checked) any = true;
+      if (boxes[i].checked !== MASK_OPTIONS[i].valid) allOk = false;
+    }
+    if (!any){ say("msg-a2a", "Kreuze die gültigen Masken an.", "hint"); return; }
+    if (allOk){ say("msg-a2a", "Alle Angaben stimmen.", "ok"); }
+    else { say("msg-a2a", "Noch nicht. Schreibe die kritischen Werte binär auf und prüfe, ob nach der ersten 0 noch eine 1 folgt.", "hint"); }
+  };
+
+  /* ================= 2b und 2c ================= */
+  var CIDR_FROM = ["255.192.0.0", "255.255.240.0", "255.255.255.248"];
+  var CIDR_TO   = [13, 22, 27];
+  var fromRows = [], toRows = [];
+
+  function prefixOfMask(m){
+    var bits = toBinOctets(m).join("");
+    var c = 0;
+    for (var i = 0; i < bits.length; i++){ if (bits.charAt(i) === "1") c++; }
+    return c;
+  }
+
+  (function(){
+    var host = $("cidrFrom");
+    CIDR_FROM.forEach(function(m){
+      var wrap = document.createElement("div");
+      wrap.className = "block";
+      var h = document.createElement("h4");
+      h.textContent = "Maske " + m;
+      wrap.appendChild(h);
+
+      var tbl = document.createElement("table");
+      tbl.className = "calc";
+      var store = [];
+      tbl.appendChild(inputRow("Binär", null, [8,8,8,8], store, "Maske " + m + " Oktett", "res"));
+      wrap.appendChild(tbl);
+
+      var ans = document.createElement("div");
+      ans.className = "answer";
+      var lab = document.createElement("label");
+      lab.className = "field";
+      lab.textContent = "CIDR-Suffix";
+      var slash = document.createElement("span");
+      slash.style.fontFamily = "var(--mono)";
+      slash.textContent = "/";
+      var pre = document.createElement("input");
+      pre.type = "text";
+      pre.className = "w-pre";
+      pre.inputMode = "numeric";
+      pre.autocomplete = "off";
+      pre.setAttribute("aria-label", "CIDR-Suffix für " + m);
+      onlyDigits(pre);
+      ans.appendChild(lab); ans.appendChild(slash); ans.appendChild(pre);
+      wrap.appendChild(ans);
+
+      host.appendChild(wrap);
+      fromRows.push({ mask: m, bits: store, pre: pre });
+    });
+  })();
+
+  (function(){
+    var host = $("cidrTo");
+    CIDR_TO.forEach(function(p){
+      var wrap = document.createElement("div");
+      wrap.className = "block";
+      var h = document.createElement("h4");
+      h.textContent = "Präfix /" + p;
+      wrap.appendChild(h);
+
+      var tbl = document.createElement("table");
+      tbl.className = "calc";
+      var store = [];
+      tbl.appendChild(inputRow("Binär", null, [8,8,8,8], store, "Präfix " + p + " Oktett", "res"));
+      wrap.appendChild(tbl);
+
+      var ans = document.createElement("div");
+      ans.className = "answer";
+      var lab = document.createElement("label");
+      lab.className = "field";
+      lab.textContent = "Maske dezimal";
+      var dec = document.createElement("input");
+      dec.type = "text";
+      dec.className = "w-ip";
+      dec.autocomplete = "off";
+      dec.spellcheck = false;
+      dec.setAttribute("aria-label", "Maske dezimal für Präfix " + p);
+      ans.appendChild(lab); ans.appendChild(dec);
+      wrap.appendChild(ans);
+
+      host.appendChild(wrap);
+      toRows.push({ prefix: p, bits: store, dec: dec });
+    });
+  })();
+
+  checks.a2b = function(){
+    for (var r = 0; r < fromRows.length; r++){
+      var row = fromRows[r];
+      var exp = toBinOctets(row.mask);
+      for (var i = 0; i < 4; i++){
+        var v = clean(row.bits[i].value);
+        if (v.length !== 8){ say("msg-a2b", "Bei " + row.mask + " ist Oktett " + (i + 1) + " noch nicht vollständig.", "hint"); return; }
+        var ok = (v === exp[i]);
+        row.bits[i].classList.toggle("ok", ok);
+        if (!ok){ say("msg-a2b", "Bei " + row.mask + " stimmt Oktett " + (i + 1) + " noch nicht.", "hint"); return; }
+      }
+      var pv = clean(row.pre.value);
+      if (pv === ""){ say("msg-a2b", "Bei " + row.mask + " fehlt noch das CIDR-Suffix.", "hint"); return; }
+      var okP = Number(pv) === prefixOfMask(row.mask);
+      row.pre.classList.toggle("ok", okP);
+      if (!okP){ say("msg-a2b", "Das Suffix bei " + row.mask + " stimmt noch nicht. Zähle die Einsen deiner Bitfolge.", "hint"); return; }
+    }
+    say("msg-a2b", "Alle drei Masken stimmen.", "ok");
+  };
+
+  checks.a2c = function(){
+    for (var r = 0; r < toRows.length; r++){
+      var row = toRows[r];
+      var exp = toBinOctets(maskDotted(row.prefix));
+      for (var i = 0; i < 4; i++){
+        var v = clean(row.bits[i].value);
+        if (v.length !== 8){ say("msg-a2c", "Bei /" + row.prefix + " ist Oktett " + (i + 1) + " noch nicht vollständig.", "hint"); return; }
+        var ok = (v === exp[i]);
+        row.bits[i].classList.toggle("ok", ok);
+        if (!ok){ say("msg-a2c", "Bei /" + row.prefix + " stimmt Oktett " + (i + 1) + " noch nicht. Setze genau " + row.prefix + " Einsen von links.", "hint"); return; }
+      }
+      var dv = normIp(row.dec.value);
+      if (dv === ""){ say("msg-a2c", "Bei /" + row.prefix + " fehlt noch die dezimale Maske.", "hint"); return; }
+      var okD = (dv === maskDotted(row.prefix));
+      row.dec.classList.toggle("ok", okD);
+      if (!okD){ say("msg-a2c", "Die dezimale Maske bei /" + row.prefix + " stimmt noch nicht. Rechne jedes Oktett einzeln um.", "hint"); return; }
+    }
+    say("msg-a2c", "Alle drei Präfixe stimmen.", "ok");
+  };
+
+  /* ================= 3a Präfixtabelle ================= */
+  var PREFIXES = [25, 26, 27, 28, 29, 30, 18, 20];
+  var prefixRows = [];
+  (function(){
+    var t = $("prefixTable");
+    var head = document.createElement("tr");
+    ["Präfix", "Subnetzmaske", "Blockgröße", "Netze im Oktett", "Nutzbare Hosts"].forEach(function(x){
+      var th = document.createElement("th");
+      th.textContent = x;
+      head.appendChild(th);
+    });
+    t.appendChild(head);
+
+    PREFIXES.forEach(function(p){
+      var tr = document.createElement("tr");
+      var td0 = document.createElement("td");
+      td0.className = "key";
+      td0.textContent = "/" + p;
+      tr.appendChild(td0);
+
+      var octIndex = p > 24 ? 3 : 2;
+
+      var tdM = document.createElement("td");
+      var cell = document.createElement("div");
+      cell.className = "maskcell";
+      var pre = document.createElement("span");
+      pre.textContent = octIndex === 3 ? "255.255.255." : "255.255.";
+      var octIn = document.createElement("input");
+      octIn.type = "text";
+      octIn.className = "w-oct";
+      octIn.inputMode = "numeric";
+      octIn.autocomplete = "off";
+      octIn.setAttribute("aria-label", "Oktett der Subnetzmaske für Präfix " + p);
+      onlyDigits(octIn);
+      cell.appendChild(pre);
+      cell.appendChild(octIn);
+      if (octIndex === 2){
+        var suf = document.createElement("span");
+        suf.textContent = ".0";
+        cell.appendChild(suf);
+      }
+      tdM.appendChild(cell);
+      tr.appendChild(tdM);
+
+      var cells = [octIn];
+      for (var c = 0; c < 3; c++){
+        var td = document.createElement("td");
+        var inp = document.createElement("input");
+        inp.type = "text";
+        inp.inputMode = "numeric";
+        inp.autocomplete = "off";
+        inp.setAttribute("aria-label", "Präfix " + p + " Spalte " + (c + 3));
+        onlyDigits(inp);
+        td.appendChild(inp);
+        tr.appendChild(td);
+        cells.push(inp);
+      }
+      t.appendChild(tr);
+
+      var block = Math.pow(2, 8 - (p % 8));
+      prefixRows.push({
+        p: p,
+        cells: cells,
+        exp: [maskFromPrefix(p)[octIndex], block, 256 / block, Math.pow(2, 32 - p) - 2]
+      });
+    });
+  })();
+
+  checks.a3a = function(){
+    var LABELS = ["Das Oktett der Subnetzmaske", "Die Blockgröße", "Die Anzahl der Netze", "Die Anzahl nutzbarer Hosts"];
+    for (var r = 0; r < prefixRows.length; r++){
+      var row = prefixRows[r];
+      for (var c = 0; c < 4; c++){
+        var v = clean(row.cells[c].value);
+        if (v === ""){ say("msg-a3a", "In der Zeile /" + row.p + " fehlt noch ein Wert.", "hint"); return; }
+        var ok = Number(v) === row.exp[c];
+        row.cells[c].classList.toggle("ok", ok);
+        if (!ok){ say("msg-a3a", LABELS[c] + " stimmt in der Zeile /" + row.p + " noch nicht.", "hint"); return; }
+      }
+    }
+    say("msg-a3a", "Die Tabelle stimmt vollständig.", "ok");
+  };
+
+  /* ================= 3b Subnetze bestimmen ================= */
+  var HOSTS = [
+    { ip: "192.168.20.55",  p: 28 },
+    { ip: "10.0.5.130",     p: 26 },
+    { ip: "172.16.9.200",   p: 27 },
+    { ip: "192.168.1.77",   p: 29 },
+    { ip: "172.20.4.34",    p: 30 }
+  ];
+  var hostRows = [];
+  (function(){
+    var t = $("subnetTable");
+    var head = document.createElement("tr");
+    ["Hostadresse", "Netzadresse", "Erste Hostadresse", "Letzte Hostadresse", "Broadcastadresse"].forEach(function(x){
+      var th = document.createElement("th");
+      th.textContent = x;
+      head.appendChild(th);
+    });
+    t.appendChild(head);
+
+    HOSTS.forEach(function(h){
+      var tr = document.createElement("tr");
+      var td0 = document.createElement("td");
+      td0.className = "key";
+      td0.textContent = h.ip + "/" + h.p;
+      tr.appendChild(td0);
+
+      var cells = [];
+      for (var c = 0; c < 4; c++){
+        var td = document.createElement("td");
+        var inp = document.createElement("input");
+        inp.type = "text";
+        inp.autocomplete = "off";
+        inp.spellcheck = false;
+        inp.setAttribute("aria-label", h.ip + " Spalte " + (c + 2));
+        td.appendChild(inp);
+        tr.appendChild(td);
+        cells.push(inp);
+      }
+      t.appendChild(tr);
+
+      var info = subnetInfo(h.ip, h.p);
+      hostRows.push({ ip: h.ip, p: h.p, cells: cells, exp: [info.net, info.first, info.last, info.bc] });
+    });
+  })();
+
+  checks.a3b = function(){
+    var LABELS = ["Die Netzadresse", "Die erste Hostadresse", "Die letzte Hostadresse", "Die Broadcastadresse"];
+    for (var r = 0; r < hostRows.length; r++){
+      var row = hostRows[r];
+      for (var c = 0; c < 4; c++){
+        var v = normIp(row.cells[c].value);
+        if (v === ""){ say("msg-a3b", "In der Zeile " + row.ip + "/" + row.p + " fehlt noch ein Wert.", "hint"); return; }
+        var ok = (v === row.exp[c]);
+        row.cells[c].classList.toggle("ok", ok);
+        if (!ok){ say("msg-a3b", LABELS[c] + " stimmt in der Zeile " + row.ip + "/" + row.p + " noch nicht.", "hint"); return; }
+      }
+    }
+    say("msg-a3b", "Alle fünf Subnetze stimmen.", "ok");
+  };
+
+  /* ================= 3c ================= */
+  var CAND28 = ["192.168.20.45", "192.168.20.52", "192.168.20.60", "192.168.20.65"];
+  var REF28 = subnetInfo("192.168.20.55", 28);
+  (function(){
+    var host = $("pick28");
+    CAND28.forEach(function(ip){
+      var lab = document.createElement("label");
+      var cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.className = "pick28";
+      cb.value = ip;
+      var sp = document.createElement("span");
+      sp.style.fontFamily = "var(--mono)";
+      sp.textContent = ip;
+      lab.appendChild(cb);
+      lab.appendChild(sp);
+      host.appendChild(lab);
+    });
+  })();
+
+  checks.a3c = function(){
+    var boxes = document.querySelectorAll("input.pick28");
+    var any = false, allOk = true;
+    for (var i = 0; i < boxes.length; i++){
+      var inNet = (subnetInfo(CAND28[i], 28).net === REF28.net);
+      if (boxes[i].checked) any = true;
+      if (boxes[i].checked !== inNet) allOk = false;
+    }
+    if (!any){ say("msg-a3c", "Kreuze die passenden Geräte an.", "hint"); return; }
+    if (allOk){ say("msg-a3c", "Richtig.", "ok"); }
+    else { say("msg-a3c", "Noch nicht. Bestimme zuerst den Block, in dem die 55 liegt, und prüfe dann jede Adresse gegen diesen Bereich.", "hint"); }
+  };
+
+  /* ================= 3d Netze aufteilen ================= */
+  var SPLITS = [
+    { netz: "192.168.30.0/24", bedarf: "mindestens 25 Hosts je Subnetz",  exp: [27, 8, 30] },
+    { netz: "10.20.30.0/24",   bedarf: "mindestens 100 Hosts je Subnetz", exp: [25, 2, 126] },
+    { netz: "172.16.5.0/24",   bedarf: "mindestens 12 Hosts je Subnetz",  exp: [28, 16, 14] },
+    { netz: "192.168.99.0/24", bedarf: "mindestens 6 Hosts je Subnetz",   exp: [29, 32, 6] },
+    { netz: "192.168.50.0/24", bedarf: "mindestens 4 Subnetze, dabei möglichst viele Hosts je Subnetz", exp: [26, 4, 62] }
+  ];
+  var splitRows = [];
+  (function(){
+    var t = $("splitTable");
+    var head = document.createElement("tr");
+    ["Netz", "Vorgabe", "Präfix", "Subnetze", "Hosts je Subnetz"].forEach(function(x){
+      var th = document.createElement("th");
+      th.textContent = x;
+      head.appendChild(th);
+    });
+    t.appendChild(head);
+
+    SPLITS.forEach(function(s){
+      var tr = document.createElement("tr");
+
+      var td0 = document.createElement("td");
+      td0.className = "key";
+      td0.textContent = s.netz;
+      tr.appendChild(td0);
+
+      var td1 = document.createElement("td");
+      td1.className = "task";
+      td1.textContent = s.bedarf;
+      tr.appendChild(td1);
+
+      var tdP = document.createElement("td");
+      var pcell = document.createElement("div");
+      pcell.className = "prefcell";
+      var slash = document.createElement("span");
+      slash.textContent = "/";
+      var pIn = document.createElement("input");
+      pIn.type = "text";
+      pIn.className = "w-pre";
+      pIn.inputMode = "numeric";
+      pIn.autocomplete = "off";
+      pIn.setAttribute("aria-label", "Präfix für " + s.netz);
+      onlyDigits(pIn);
+      pcell.appendChild(slash);
+      pcell.appendChild(pIn);
+      tdP.appendChild(pcell);
+      tr.appendChild(tdP);
+
+      var cells = [pIn];
+      for (var c = 0; c < 2; c++){
+        var td = document.createElement("td");
+        var inp = document.createElement("input");
+        inp.type = "text";
+        inp.inputMode = "numeric";
+        inp.autocomplete = "off";
+        inp.setAttribute("aria-label", s.netz + " Spalte " + (c + 4));
+        onlyDigits(inp);
+        td.appendChild(inp);
+        tr.appendChild(td);
+        cells.push(inp);
+      }
+      t.appendChild(tr);
+      splitRows.push({ netz: s.netz, cells: cells, exp: s.exp });
+    });
+  })();
+
+  checks.a3d = function(){
+    var LABELS = ["Das Präfix", "Die Anzahl der Subnetze", "Die Anzahl nutzbarer Hosts"];
+    var HINTS = [
+      "Suche die kleinste Blockgröße, bei der nach Abzug von Netzadresse und Broadcastadresse noch genug Adressen bleiben.",
+      "Teile 256 durch die Blockgröße.",
+      "Denk an die beiden Adressen, die in jedem Subnetz nicht vergeben werden."
+    ];
+    for (var r = 0; r < splitRows.length; r++){
+      var row = splitRows[r];
+      for (var c = 0; c < 3; c++){
+        var v = clean(row.cells[c].value);
+        if (v === ""){ say("msg-a3d", "In der Zeile " + row.netz + " fehlt noch ein Wert.", "hint"); return; }
+        var ok = Number(v) === row.exp[c];
+        row.cells[c].classList.toggle("ok", ok);
+        if (!ok){ say("msg-a3d", LABELS[c] + " stimmt in der Zeile " + row.netz + " noch nicht. " + HINTS[c], "hint"); return; }
+      }
+    }
+    say("msg-a3d", "Alle fünf Aufträge stimmen.", "ok");
+  };
+
+  /* ================= 4a Grundfälle ================= */
+  var CASE_ADR  = "1100";
+  var CASE_MASK = "1010";
+  var ruleInputs = [];
+  (function(){
+    var t = $("ruleTable");
+    t.appendChild(fixedRow("Adresse", null, [CASE_ADR], null));
+    t.appendChild(fixedRow("Subnetzmaske", null, [CASE_MASK], "maskrow"));
+    t.appendChild(ruleRow(2));
+    t.appendChild(inputRow("Ergebnis", null, [4], ruleInputs, "Ergebnis Grundfälle", "res"));
+  })();
+
+  checks.a4a = function(){
+    var v = clean(ruleInputs[0].value);
+    if (v.length !== 4){ say("msg-a4a", "Es fehlt noch mindestens eine Stelle.", "hint"); return; }
+    var exp = "";
+    for (var i = 0; i < 4; i++){
+      exp += (CASE_ADR.charAt(i) === "1" && CASE_MASK.charAt(i) === "1") ? "1" : "0";
+    }
+    var ok = (v === exp);
+    ruleInputs[0].classList.toggle("ok", ok);
+    if (ok){ say("msg-a4a", "Stimmt.", "ok"); }
+    else { say("msg-a4a", "Noch nicht. Sieh dir jede Spalte einzeln an und vergleiche mit der Tabelle oben.", "hint"); }
+  };
+
+  /* ================= 4b bis 4e ================= */
+  var SET_A = [
+    { key: "client",  label: "Client-PC",       ip: "192.168.20.10",  mask: "255.255.255.192" },
+    { key: "drucker", label: "Netzwerkdrucker", ip: "192.168.20.50",  mask: "255.255.255.192" },
+    { key: "nas",     label: "NAS",             ip: "192.168.20.200", mask: "255.255.255.192" }
+  ];
+  var SET_B = [
+    { key: "web",    label: "Webserver",       ip: "10.0.5.30",  mask: "255.255.255.0"   },
+    { key: "db",     label: "Datenbankserver", ip: "10.0.5.130", mask: "255.255.255.0"   },
+    { key: "backup", label: "Backup-Server",   ip: "10.0.5.200", mask: "255.255.255.128" }
+  ];
+  var andRows = {};
+
+  function buildAndBlocks(hostId, set){
+    var host = $(hostId);
+    host.innerHTML = "";
+    set.forEach(function(dev){
+      var wrap = document.createElement("div");
+      wrap.className = "block";
+
+      var h = document.createElement("h4");
+      h.textContent = dev.label;
+      wrap.appendChild(h);
+
+      var tbl = document.createElement("table");
+      tbl.className = "calc";
+      tbl.appendChild(fixedRow("IP-Adresse", dev.ip, toBinOctets(dev.ip), null));
+      tbl.appendChild(fixedRow("Subnetzmaske", dev.mask, toBinOctets(dev.mask), "maskrow"));
+      tbl.appendChild(ruleRow(8));
+
+      var inputs = [];
+      tbl.appendChild(inputRow("Ergebnis / Netzadresse", null, [8,8,8,8], inputs, dev.label + " Oktett", "res"));
+      andRows[dev.key] = inputs;
+
+      wrap.appendChild(tbl);
+      host.appendChild(wrap);
+    });
+  }
+  buildAndBlocks("andBlocksA", SET_A);
+  buildAndBlocks("andBlocksB", SET_B);
+
+  function buildCompare(hostId, set, title){
+    var host = $(hostId);
+    host.innerHTML = "";
+    var h = document.createElement("h4");
+    h.textContent = title;
+    host.appendChild(h);
+    var tbl = document.createElement("table");
+    tbl.className = "calc";
+    set.forEach(function(dev){
+      var res = andOctets(toBinOctets(dev.ip), toBinOctets(dev.mask));
+      tbl.appendChild(fixedRow(dev.label, null, res, "resrow"));
+    });
+    host.appendChild(tbl);
+  }
+
+  function checkSet(set, msgId, onDone){
+    var allOk = true, wrong = [];
+    for (var d = 0; d < set.length; d++){
+      var dev = set[d];
+      var inputs = andRows[dev.key];
+      var exp = andOctets(toBinOctets(dev.ip), toBinOctets(dev.mask));
+      var devOk = true;
+      for (var i = 0; i < inputs.length; i++){
+        var v = clean(inputs[i].value);
+        if (v.length !== 8){
+          say(msgId, "Beim " + dev.label + " ist Oktett " + (i + 1) + " noch nicht vollständig. Ein Oktett hat acht Stellen.", "hint");
+          return;
+        }
+        var ok = (v === exp[i]);
+        inputs[i].classList.toggle("ok", ok);
+        if (!ok) devOk = false;
+      }
+      if (!devOk){ allOk = false; wrong.push(dev.label); }
+    }
+    if (allOk){
+      say(msgId, "Alle drei Netzadressen stimmen.", "ok");
+      onDone();
+    } else {
+      say(msgId, "Bei " + wrong.join(" und ") + " stimmt es noch nicht. Gehe Spalte für Spalte vor.", "hint");
+    }
+  }
+
+  (function(){
+    var host = $("pickA");
+    SET_A.forEach(function(dev){
+      var lab = document.createElement("label");
+      var cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.className = "pickA";
+      cb.value = dev.key;
+      lab.appendChild(cb);
+      lab.appendChild(document.createTextNode(dev.label));
+      host.appendChild(lab);
+    });
+  })();
+
+  var PICK_B = [
+    { v: "b1", text: "Beide halten den jeweils anderen für einen Nachbarn im selben Netz, die Verbindung läuft in beide Richtungen direkt über den Switch." },
+    { v: "b2", text: "Der Webserver hält den Backup-Server für einen Nachbarn und sendet direkt, der Backup-Server sieht den Webserver in einem fremden Netz und antwortet deshalb nicht direkt." },
+    { v: "b3", text: "Der Backup-Server hält den Webserver für einen Nachbarn und sendet direkt, der Webserver sieht den Backup-Server in einem fremden Netz und antwortet deshalb nicht direkt." },
+    { v: "b4", text: "Beide sehen den jeweils anderen in einem fremden Netz, in keine Richtung kommt eine direkte Verbindung zustande." }
+  ];
+  (function(){
+    var host = $("pickB");
+    PICK_B.forEach(function(o){
+      var lab = document.createElement("label");
+      var rb = document.createElement("input");
+      rb.type = "radio";
+      rb.name = "pickB";
+      rb.value = o.v;
+      lab.appendChild(rb);
+      lab.appendChild(document.createTextNode(o.text));
+      host.appendChild(lab);
+    });
+  })();
+
+  checks.a4b = function(){
+    checkSet(SET_A, "msg-a4b", function(){
+      buildCompare("compareA", SET_A, "Die drei Netzadressen untereinander");
+      $("evalA").classList.remove("locked");
+      $("lockNoteA").style.display = "none";
+    });
+  };
+  checks.a4d = function(){
+    checkSet(SET_B, "msg-a4d", function(){
+      buildCompare("compareB", SET_B, "Die drei Netzadressen untereinander");
+      $("evalB").classList.remove("locked");
+      $("lockNoteB").style.display = "none";
+    });
+  };
+
+  checks.a4c = function(){
+    var picks = document.querySelectorAll("input.pickA");
+    var sel = [];
+    for (var i = 0; i < picks.length; i++) if (picks[i].checked) sel.push(picks[i].value);
+    if (sel.length === 0){ say("msg-a4c", "Wähle die Geräte aus.", "hint"); return; }
+    var correct = sel.length === 2 && sel.indexOf("client") > -1 && sel.indexOf("drucker") > -1;
+    if (correct){ say("msg-a4c", "Richtig. Nur diese beiden kommen auf dieselbe Netzadresse.", "ok"); }
+    else if (sel.length === 3){ say("msg-a4c", "Vergleiche die Netzadressen noch einmal genau. Sind wirklich alle drei identisch?", "hint"); }
+    else { say("msg-a4c", "Noch nicht. Entscheidend ist allein die Zeile unter dem Strich.", "hint"); }
+  };
+
+  checks.a4e = function(){
+    var sel = null;
+    var rbs = document.getElementsByName("pickB");
+    for (var i = 0; i < rbs.length; i++) if (rbs[i].checked) sel = rbs[i].value;
+    if (sel === null){ say("msg-a4e", "Wähle eine Antwort aus.", "hint"); return; }
+    if (sel === "b2"){ say("msg-a4e", "Richtig. Die beiden Geräte beurteilen dieselbe Verbindung unterschiedlich.", "ok"); }
+    else { say("msg-a4e", "Noch nicht. Rechne beide Richtungen getrennt und achte darauf, mit welcher Subnetzmaske jedes Gerät rechnet.", "hint"); }
+  };
+
+  /* ================= Buttons ================= */
+  var btns = document.querySelectorAll("button.check");
+  for (var b = 0; b < btns.length; b++){
+    (function(btn){
+      btn.addEventListener("click", function(){
+        var fn = checks[btn.dataset.check];
+        if (fn) fn();
+      });
+    })(btns[b]);
+  }
+})();
+</script>
+</body>
+</html>
