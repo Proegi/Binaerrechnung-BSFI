@@ -369,7 +369,7 @@
   </div>
 
   <div class="info">
-    <p>Wegen der Regel aus Aufgabe 2 kann höchstens ein Oktett der Subnetzmaske einen Wert zwischen 0 und 255 haben, alle anderen sind 255 oder 0. Genau dieses eine Oktett zerlegt den Adressbereich in gleich große Blöcke.</p>
+    <p>Wegen der Regel aus Aufgabe 2 kann höchstens ein Oktett der Subnetzmaske einen Wert zwischen 0 und 255 haben, alle anderen sind 255 oder 0. Genau das Oktett, in dem sich die Subnetzmaske ändert, zerlegt den Adressbereich in gleich große Blöcke. Die Blockgröße gilt nur innerhalb dieses einen Oktetts, nicht für die ganze Adresse.</p>
     <p>Die Netzadresse ist die erste Adresse eines Subnetzes. Die Netzadressen sind die Vielfachen der Blockgröße, du zählst also in Schritten der Blockgröße hoch. Die letzte Adresse eines Subnetzes ist die Broadcastadresse. Alle Adressen dazwischen sind nutzbare Hostadressen. Netzadresse und Broadcastadresse dürfen nicht an einen Host vergeben werden.</p>
     <div class="demo">
       <div><span class="k">Netz</span><span class="v">192.168.1.0/24</span></div>
@@ -389,7 +389,7 @@
       </tr>
       <tr>
         <td class="lab">Blockgröße</td>
-        <td class="frm"><em>2 hoch Hostbits oder 256 minus Wert des betroffenen Oktetts</em><b>2<sup>6</sup> = 64 oder 256 - 192 = 64</b></td>
+        <td class="frm"><em>2 hoch Hostbits oder 256 minus Wert des Oktetts, in dem sich die Subnetzmaske ändert</em><b>2<sup>6</sup> = 64 oder 256 - 192 = 64</b></td>
       </tr>
       <tr>
         <td class="lab">Netze im Oktett</td>
@@ -1159,7 +1159,14 @@
         if (v === ""){ say("msg-a3a", "In der Zeile /" + row.p + " fehlt noch ein Wert.", "hint"); return; }
         var ok = Number(v) === row.exp[c];
         row.cells[c].classList.toggle("ok", ok);
-        if (!ok){ say("msg-a3a", LABELS[c] + " stimmt in der Zeile /" + row.p + " noch nicht.", "hint"); return; }
+        if (!ok){
+          if (c === 1 && Number(v) === Math.pow(2, 32 - row.p)){
+            say("msg-a3a", "Die Blockgröße in der Zeile /" + row.p + " ist mit allen 32 Bit der Adresse gerechnet. Nutze nur die Hostbits im Oktett, in dem sich die Subnetzmaske ändert (8 minus Präfix modulo 8).", "hint");
+            return;
+          }
+          say("msg-a3a", LABELS[c] + " stimmt in der Zeile /" + row.p + " noch nicht.", "hint");
+          return;
+        }
       }
     }
     say("msg-a3a", "Die Tabelle stimmt vollständig.", "ok");
