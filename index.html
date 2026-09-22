@@ -427,27 +427,45 @@
     <p class="case">Aus fünf Tickets liegen dir jeweils die Adresse eines Geräts und das Präfix vor.</p>
     <p>Bestimme das Subnetz, in dem der Host liegt. Trage vollständige Adressen ein, zum Beispiel 192.168.1.0.</p>
     <div class="block">
+      <h4>Netzadresse und Broadcastadresse</h4>
+      <p style="margin:0 0 10px;">Die Netzadresse ist die erste Adresse eines Netzes, die Broadcastadresse die letzte. Bei /26 mit Blockgröße 64 sieht das so aus:</p>
+      <table class="steps">
+        <tr>
+          <td class="lab">.0 bis .63</td>
+          <td class="frm">Netzadresse <b>.0</b>, Broadcastadresse <b>.63</b></td>
+        </tr>
+        <tr>
+          <td class="lab">.64 bis .127</td>
+          <td class="frm">Netzadresse <b>.64</b>, Broadcastadresse <b>.127</b></td>
+        </tr>
+        <tr>
+          <td class="lab">.128 bis .191</td>
+          <td class="frm">Netzadresse <b>.128</b>, Broadcastadresse <b>.191</b></td>
+        </tr>
+        <tr>
+          <td class="lab">.192 bis .255</td>
+          <td class="frm">Netzadresse <b>.192</b>, Broadcastadresse <b>.255</b></td>
+        </tr>
+      </table>
+    </div>
+    <div class="block">
       <h4>Beispiel 172.16.9.201/21</h4>
       <table class="steps">
         <tr>
           <td class="lab">Betroffenes Oktett</td>
-          <td class="frm"><em>Das Oktett, in dem laut 3a die Subnetzmaske nicht 255 oder 0 ist</em><b>bei /21 das dritte Oktett, Wert 9</b></td>
+          <td class="frm"><em>Das Oktett, in dem sich die Subnetzmaske ändert</em><b>bei /21 das dritte Oktett, Wert 9</b></td>
         </tr>
         <tr>
           <td class="lab">Blockgröße</td>
-          <td class="frm"><em>Wie in 3a, aus der Subnetzmaske des betroffenen Oktetts</em><b>256 - 248 = 8</b></td>
-        </tr>
-        <tr>
-          <td class="lab">Vielfaches darunter</td>
-          <td class="frm"><em>Das größte Vielfache der Blockgröße, das nicht größer ist als der Wert im betroffenen Oktett</em><b>9 : 8 = 1 Rest 1, also 1 · 8 = 8</b></td>
+          <td class="frm"><em>256 minus dem Wert der Subnetzmaske in diesem Oktett</em><b>256 - 248 = 8</b></td>
         </tr>
         <tr>
           <td class="lab">Netzadresse</td>
-          <td class="frm"><em>Die Oktetts vor dem betroffenen bleiben stehen, das betroffene wird zum Vielfachen, alles danach wird 0</em><b>172.16.8.0</b></td>
+          <td class="frm"><em>Zähle im betroffenen Oktett in Schritten der Blockgröße hoch (0, 8, 16, 24 …), bis du den Wert des Hosts überschreitest. Das Netz beginnt beim Wert davor.</em><b>9 liegt zwischen 8 und 16 → 172.16.8.0</b></td>
         </tr>
         <tr>
           <td class="lab">Broadcastadresse</td>
-          <td class="frm"><em>Netzadresse plus Blockgröße minus 1, also der letzte Wert vor dem nächsten Vielfachen</em><b>172.16.15.255</b></td>
+          <td class="frm"><em>Netzadresse plus Blockgröße minus 1</em><b>172.16.15.255</b></td>
         </tr>
         <tr>
           <td class="lab">Hostbereich</td>
