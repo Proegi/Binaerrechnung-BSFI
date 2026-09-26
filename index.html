@@ -196,6 +196,17 @@
   table.steps td.frm{font-size:.9rem;}
   table.steps td.frm em{font-style:normal;color:var(--ink-2);}
   table.steps td.frm b{display:block;font-family:var(--mono);font-weight:600;font-size:.93rem;margin-top:2px;}
+  .c-pre,.c-hb,.c-m,.c-bs,.c-n,.c-h{font-weight:700;}
+  .c-pre{color:#1F5FAF;}
+  .c-hb{color:#B32C22;}
+  .c-m{color:#7A3FA8;}
+  .c-bs{color:#1E6B4F;}
+  .c-n{color:#C0661A;}
+  .c-h{color:#0E7C86;}
+  table.steps td.lab.c-hb{color:#B32C22;}
+  table.steps td.lab.c-bs{color:#1E6B4F;}
+  table.steps td.lab.c-n{color:#C0661A;}
+  table.steps td.lab.c-h{color:#0E7C86;}
 
   .note{border-left:3px solid var(--pink);background:var(--card-2);padding:10px 14px;font-size:.93rem;margin:0 0 14px;}
   .note p{margin:0;}
@@ -381,23 +392,23 @@
   </div>
 
   <div class="block">
-    <h4>Beispiel 255.255.255.192 also /26</h4>
+    <h4>Beispiel 255.255.255.<span class="c-m">192</span> also /<span class="c-pre">26</span></h4>
     <table class="steps">
       <tr>
-        <td class="lab">Hostbits</td>
-        <td class="frm"><em>Bits einer IPv4-Adresse minus Anzahl der Einsen in der Subnetzmaske</em><b>32 - 26 = 6</b></td>
+        <td class="lab c-hb">Hostbits</td>
+        <td class="frm"><em>Bits einer IPv4-Adresse minus Anzahl der Einsen in der Subnetzmaske</em><b>32 - <span class="c-pre">26</span> = <span class="c-hb">6</span></b></td>
       </tr>
       <tr>
-        <td class="lab">Blockgröße</td>
-        <td class="frm"><em>2 hoch Hostbits (des betroffenen Oktetts) oder 256 minus Wert des Oktetts, in dem sich die Subnetzmaske ändert</em><b>2<sup>6</sup> = 64 oder 256 - 192 = 64</b></td>
+        <td class="lab c-bs">Blockgröße</td>
+        <td class="frm"><em>2 hoch Hostbits (des betroffenen Oktetts) oder 256 minus Wert des Oktetts, in dem sich die Subnetzmaske ändert</em><b>2<sup class="c-hb">6</sup> = <span class="c-bs">64</span> oder 256 - <span class="c-m">192</span> = <span class="c-bs">64</span></b></td>
       </tr>
       <tr>
-        <td class="lab">Netze im Oktett</td>
-        <td class="frm"><em>256 geteilt durch die Blockgröße</em><b>256 : 64 = 4</b></td>
+        <td class="lab c-n">Netze im Oktett</td>
+        <td class="frm"><em>256 geteilt durch die Blockgröße</em><b>256 : <span class="c-bs">64</span> = <span class="c-n">4</span></b></td>
       </tr>
       <tr>
-        <td class="lab">Nutzbare Hosts</td>
-        <td class="frm"><em>2 hoch Hostbits (der gesamten Adresse) minus Netzadresse und Broadcastadresse</em><b>2<sup>6</sup> - 2 = 62</b></td>
+        <td class="lab c-h">Nutzbare Hosts</td>
+        <td class="frm"><em>2 hoch Hostbits (der gesamten Adresse) minus Netzadresse und Broadcastadresse</em><b>2<sup class="c-hb">6</sup> - 2 = <span class="c-h">62</span></b></td>
       </tr>
     </table>
     <div class="blocks">
